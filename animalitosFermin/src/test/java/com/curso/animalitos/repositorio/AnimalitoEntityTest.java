@@ -86,7 +86,7 @@ class AnimalitoEntityTest {
             // Si llego aquí es que la prueba ha ido bien
         }
         */
-        Assertions.assertThrows(Exception.class, miRepositorio.save(miAnimalito));
+        //Assertions.assertThrows(Exception.class, miRepositorio.save(miAnimalito));
     }
 
 

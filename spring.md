@@ -903,22 +903,22 @@ Las herramientas, las metodologías, las culturas, los frameworks, los lenguajes
 
 ---
 
-# Animalitos FERMIN!
+# Animalito FERMIN!
 
-Servicio Web (REST) que permite las operaciones básicas CRUD(Create, Read, Update, Delete) animalitos... Los que en un momento dado está vendiendo Fermín en su tienda de mascotas.
+Servicio Web (REST) que permite las operaciones básicas CRUD(Create, Read, Update, Delete) Animalito... Los que en un momento dado está vendiendo Fermín en su tienda de mascotas.
 
 ## Componentes?
 
-                        AnimalitosRestMapper         AnimalitosServiceMapper                                  LOGICA DE TRANSFORMACION
+                        AnimalitoRestMapper         AnimalitoServiceMapper                                  LOGICA DE TRANSFORMACION
                          v            ^               ^                 v                                               DE DATOS
                          v            ^               ^                 v                                     
         NuevoAnimalitoRestDTO         NuevoAnimalitoDTO         AnimalitoEntity                               ALMACENAMIEWNTO DE DATOS
         ModificacionAnimalitoRestDTO  ModificacionAnimalitoDTO  
         AnimalitoRestDTO              AnimalitoDTO              
 
-            ^^^vvv                      ^^^^vvvv                   ^^^^vvvv
+            ^^^ vvv                      ^^^^ vvvv                 ^^^^ vvvv
         
-        AnimalitosRestController    > AnimalitosService >       AnimalitosRepository > BBDD                   COMPONENTES DE LOGICA
+        AnimalitoRestController    > AnimalitoService >       AnimalitoRepository > BBDD                   COMPONENTES DE LOGICA
          Lógica de exposición         Lógica                    Gestionar              Almacenar datos
              del servicio             de negocio                el almacenamiento de datos
 
@@ -931,3 +931,427 @@ Servicio Web (REST) que permite las operaciones básicas CRUD(Create, Read, Upda
 
 
 Porque vamos a diseñar un micro-servicio como se diseñan hoy en día... NO VAMOS A MONTAR UN PUTO SISTEMA MONOLITO... vamos a trabajar con una aquitectura LIMPIA (Clean Architecture) y vamos a separar las capas de la aplicación, para respetar el principio de RESPONSABILIDAD ÚNICA: SRP (Single Responsability Principle)
+
+Antiguamente eso se montaba en un JSP / Servlet... = RUINA !!!!
+Que:
+- Validaba los datos
+- Consultaba la BBDD
+- Mandaba correos
+- Preparaba una respuesta
+- La mandaba de vuelta en JSON
+
+---
+
+# Inyección de dependencias con Spring (REPASO)
+
+## Cómo solicitar dependencias a Spring?
+
+### @Autowired (uso restringido)
+
+La puedo poner en una propiedad privada de una clase... Y SI Spring crea una instancia de la clase, rellena este valor.
+NOTA: Si yo creo una instancia de la clase... me toca a mi rellenarlo como sea.. Spring no lo hace por mi...
+NOTA2: Dijimos que esto es lento, poco seguro... y que me limita el uso de la variable a las funciones, ya que en el constructor aún no tengo la variable cargada.
+
+### En cualquier función de una clase, solicitar un argumento
+
+Si hago eso, Spring inyectará una instancia adecuada para la interfaz que esté pidiendo en esa función. Esto solo funciona si es Spring quien llama a la función. Si soy yo quien la llama, me toca pasarle la dependencia.
+
+### Híbrido de esas dos. (LO MAS USADO)
+
+Cuando quiero el dato a nivel de la clase, puedo solicitarlo en la función CONSTRUCTORA (en el constructor)... 
+y si **Spring es quien crea la instancia de la clase**, me lo pasa.
+
+## Cómo decirle (configurar) a Spring qué instancias de qué clases debe entregar cuando se solicite una dependencia (mediante una interfaz)?
+
+### Usar la anotación @Component o un derivado de ella (@Service, @Repository, @Controller...)
+
+Encima de la definición de la clase... y entonces?
+
+Si le decimos a Spring en el arranque que busque componentes en el paquete donde está esa clase, entonces en el ARRANQUE Spring revisa esas clases, y genera una instancia de ellas. Cuando alguien pida una instancia de una interfaz que implemente esa clase, Spring le entregará la instancia de esa clase que creo en el arranque.
+
+NOTAS: 
+- Esto es el comportamiento por defecto (EMULA UN PATRON SINGLETON: Solo crea una instancia y siempre entrega la misma). Esto se puede cambiar: @Scope("prototype"). En este caso, cada vez que se pida una interfaz, se creará una nueva instancia de esa clase que implementa la interfaz.
+- Y si hay 2 clases que implementan la interfaz marcadas como @Component??? Por defecto Spring EXPLOTA. Para evitarlo, se puede usar @Primary o @Qualifier("nombre") para indicar cuál de ellas usar.
+
+### Cuando la anterior no se puede usar (Si la clase no es mia... es de una librería de terceros)
+
+En este caso, podemos crear funciones con la anotación @Bean, dentro de una clase marcada con la anotación @Configuration.
+
+```java
+
+@Configuration
+public class MiConfiguracion {
+
+    @Bean
+    public UnaInterfaz soyFederico(){
+        return new OtraClase();
+    }
+}
+
+// En el arranque, Spring Ejecuta:
+
+MiConfiguracion miConfiguracion = new MiConfiguracion();
+UnaInterfaz instancia = miConfiguracion.soyFederico();
+// Y el valor de instancia lo guarda en su cache.
+// Si alguien pide una instancia de UnaInterfaz, Spring le entregará la instancia que guardó en su cache al ejecutar el método soyFederico.
+```
+
+Si le decimos a Spring en el arranque que busque configuraciones en el paquete donde está esa clase, entonces en el ARRANQUE Spring revisa esas clases, y genera una instancia de ellas, e invoca todos los métodos marcados con @Bean.
+Además, captura la salida de esos métodos, y la cachea.
+Cuando alguien pida una instancia de una interfaz que que sea devuelta por alguno de los métodos marcados con @Bean, Spring le entregará la instancia que cacheo en el arranque al invocar la función pertinente.
+
+---
+
+# Sistema de Animalito Fermin (UML)
+
+```mermaid
+classDiagram 
+
+    %%
+    %% Capa de persistencia: Almacenamiento de datos
+    %%
+
+    namespace Repository {
+        class AnimalEntity {
+            + Long id
+            + String nombre
+            + String tipo
+            + LocalDateTime fechaNacimiento
+        }
+
+        class AnimalRepository{
+            +save(AnimalEntity animal) : AnimalEntity
+            +deleteById(Long id) : void
+            +findById(Long id) : Optional~AnimalEntity~
+            +findAll() : List~AnimalEntity~
+        }
+    }
+    <<Interface>> AnimalRepository
+    note for AnimalRepository "Lógica de persistencia"
+
+    AnimalRepository "1" *-- "*" AnimalEntity: los gestiona
+
+    %%
+    %% Capa de servicio: Lógica de negocio
+    %%
+
+    namespace Service {
+
+        class AnimalDTO {
+            + Long id
+            + String nombre
+            + String tipo
+            + LocalDateTime fechaNacimiento
+        }
+
+        class NuevoAnimalDTO {
+            + String nombre
+            + String tipo
+            + LocalDateTime fechaNacimiento
+        }
+        class ModificacionAnimalDTO {
+            + String nombre
+        }
+
+        class AnimalService {
+            - AnimalRepository animalRepository
+            - AnimalDTOMapper animalDTOMapper
+            + nuevoAnimal(NuevoAnimalDTO nuevoAnimal) : AnimalDTO
+            + modificarAnimal(Long id, ModificacionAnimalDTO modificacionAnimal) : AnimalDTO
+            + borrarAnimal(Long id) : void
+            + buscarTodos() : List~AnimalDTO~
+        }
+
+        class AnimalDTOMapper {
+            + animalEntity2AnimalDTO(AnimalEntity entidad) : AnimalDTO
+            + nuevoAnimalDTO2AnimalEntity(NuevoAnimalDTO datos) : AnimalEntity
+        }
+    }
+    note for AnimalService "Lógica de negocio"
+    <<Interface>> AnimalService
+
+    AnimalService ..> AnimalRepository: Usa
+    AnimalService ..> AnimalDTO: los maneja
+    AnimalService ..> NuevoAnimalDTO: los maneja
+    AnimalService ..> ModificacionAnimalDTO: los maneja
+
+    %%
+    %% Capa de exposición: Exposición del servicio mediante protocolo REST
+    %%
+
+    namespace RestController {
+        class AnimalRestDTO {
+            + Long id
+            + String nombre
+            + String tipo
+            + LocalDateTime fechaNacimiento
+        }
+
+        class NuevoAnimalRestDTO {
+            + String nombre
+            + String tipo
+            + LocalDateTime fechaNacimiento
+        }
+
+        class ModificacionAnimalRestDTO {
+            + String nombre
+        }
+
+        class AnimalitoRestController {
+            - AnimalService animalService
+            - AnimalitoRestMapper AnimalitoRestMapper
+            + nuevoAnimal(NuevoAnimalRestDTO nuevoAnimal) : ResponseEntity~AnimalRestDTO~
+            + modificarAnimal(Long id, ModificacionAnimalRestDTO modificacionAnimal) : ResponseEntity~AnimalRestDTO~
+            + borrarAnimal(Long id) : ResponseEntity~Void~
+            + buscarTodos() : ResponseEntity~List~AnimalRestDTO~~
+        }
+
+        class AnimalitoRestMapper {
+            + animalDTO2AnimalRestDTO(AnimalDTO animal) : AnimalRestDTO
+            + animalRestDTO2AnimalDTO(AnimalRestDTO animal) : AnimalRestDTO
+            + nuevoAnimalRestDTO2NuevoAnimalDTO(NuevoAnimalRestDTO datos) : NuevoAnimalDTO
+        }
+    }
+
+    <<Interface>> AnimalDTOMapper
+
+    AnimalDTOMapper ..> AnimalEntity: Usa
+    AnimalDTOMapper ..> AnimalDTO: Usa
+    AnimalDTOMapper ..> NuevoAnimalDTO: Usa
+
+    AnimalService ..> AnimalDTOMapper: Usa
+
+
+    <<Interface>> AnimalitoRestController
+    note for AnimalitoRestController "Lógica de exposición del servicio mediante protocolo REST"
+
+    AnimalitoRestController ..> AnimalService: Usa
+
+    <<Interface>> AnimalitoRestMapper
+
+    AnimalitoRestMapper ..> NuevoAnimalRestDTO: Usa
+    AnimalitoRestMapper ..> AnimalRestDTO: Usa
+    AnimalitoRestMapper ..> NuevoAnimalDTO: Usa
+    AnimalitoRestMapper ..> AnimalDTO: Usa
+
+    AnimalitoRestController ..> AnimalitoRestMapper: Usa
+    AnimalitoRestController ..> NuevoAnimalRestDTO: Usa
+    AnimalitoRestController ..> AnimalRestDTO: Usa
+    AnimalitoRestController ..> NuevoAnimalDTO: Usa
+    AnimalitoRestController ..> AnimalDTO: Usa
+    AnimalitoRestController ..> ModificacionAnimalRestDTO: Usa
+
+
+
+```
+
+```mermaid
+flowchart LR
+    subgraph "Componente 1: API Web (Controlador)"
+        controller[AnimalController]
+        controller_dto[ControladorDTOs]
+        controlador_mapper[ControladorMapper]
+    end
+
+    subgraph "Componente 2: Lógica de Negocio (Servicio)"
+        service[AnimalService]
+        service_dto[ServicioDTOs]
+        service_mapper[ServicioMapper]
+    end
+
+    subgraph "Componente 3: Persistencia (Repositorio)"
+        repository[AnimalRepository]
+        entity[AnimalEntity]
+        db[Base de Datos]
+    end
+
+    controller --> controller_dto
+    controller --> controlador_mapper
+    controlador_mapper --> controller_dto
+    controlador_mapper --> service_dto
+    controller --> service
+
+    service --> service_dto
+    service --> service_mapper
+    service_mapper --> service_dto
+    service_mapper --> entity
+    service --> repository
+
+    repository --> entity
+    repository --> db
+```
+
+
+Una entidad es un objeto de transporte de datos... NO LLEVA LOGICA (solo getters y setters planos = MIERDA DE JAVA)
+DTO: Data Transfer Object = objeto de transporte de datos
+
+Las entidades son DTOs... con una peculiaridad
+- 2 DTOs se consideran iguales .equals() si tienen los mismos datos (todos)
+- 2 entidades se consideran iguales .equals() si tienen el mismo id
+
+Si tenemos un único DTO estamos violando el principio de Segregación de la interfaz (I) de SOLID: No debes tener una interfaz de propósito general, sino varias específicas, que se ajusten a los datos CONCRETOS que necesitas en cada caso.
+
+POJO: Plain Old Java Object = Objeto Java Plano y Antiguo
+Basicamente una clase con getters y setters... sin más.
+Los DTOs son POJOs... pero con una peculiaridad: No llevan lógica... solo datos.
+
+```java
+
+public class AnimalService{
+
+    private final AnimalRepository animalRepository;
+    private final AnimalDTOMapper animalDTOMapper;
+
+    public AnimalService(AnimalRepository animalRepository, AnimalDTOMapper animalDTOMapper){
+        this.animalRepository = animalRepository;
+        this.animalDTOMapper = animalDTOMapper;
+    }
+
+    public AnimalDTO nuevoAnimal(NuevoAnimalDTO datosDelNuevoAnimal){
+        // Validar los datos
+        if(datosDelNuevoAnimal.getNombre() == null || datosDelNuevoAnimal.getNombre().isEmpty()){
+            throw new IllegalArgumentException("El nombre del animal no puede ser nulo o vacío");
+        }
+        if(datosDelNuevoAnimal.getTipo() == null || datosDelNuevoAnimal.getTipo().isEmpty()){
+            throw new IllegalArgumentException("El tipo del animal no puede ser nulo o vacío");
+        }
+        // Guardarlo en BBDD
+        var entidadPersistida = animalRepository.save(animalDTOMapper.nuevoAnimalDTO2AnimalEntity(datosDelNuevoAnimal)); // JAVA 11
+        // Y cuidado que el var de JAVA no es igual al var de JS.
+        // JAVA es un lenguaje de tipado fuerte... y el var de JAVA es un tipo de dato fuerte... que se infiere en tiempo de compilación.
+        // La variable entidadPersistida es de tipo AnimalEntity... y no puede ser asignada a un tipo distinto.
+        
+        return animalDTOMapper.animalEntity2AnimalDTO(entidadPersistida);
+    }
+/*
+    // ESTO ES LO QUE LLAMAMO FUNCIONES DE MAPEO... las llevamos a otra clase: Un Mapper
+    // Es más... tenemos librerías que nos lo hacen en automático: MapStruct
+    private AnimalDTO animalEntity2AnimalDTO(AnimalEntity entidad){
+        AnimalDTO animalDTO = new AnimalDTO();
+        animalDTO.setId(entidad.getId());
+        animalDTO.setNombre(entidad.getNombre());
+        animalDTO.setTipo(entidad.getTipo());
+        animalDTO.setFechaNacimiento(entidad.getFechaNacimiento());
+        return animalDTO;
+    }
+
+    private nuevoAnimalDTO2AnimalEntity(NuevoAnimalDTO datosDelNuevoAnimal){
+        AnimalEntity animalEntity = new AnimalEntity();
+        animalEntity.setNombre(datosDelNuevoAnimal.getNombre());
+        animalEntity.setTipo(datosDelNuevoAnimal.getTipo());
+        animalEntity.setFechaNacimiento(datosDelNuevoAnimal.getFechaNacimiento());
+        return animalEntity;
+    }*/
+
+}
+```
+---
+
+# Nuestro proyecto lo vamos a montar con MAVEN
+
+## Qué es MAVEN?
+
+Es una herramienta para automatizar tareas habituales en proyectos de desarrollo de software... Muy usada (auqneu no exclusivamente) en proyectos de Java.
+Automatizar qué?
+- Compilación
+- Ejecución de pruebas
+- Ficheros de configuración
+- GEnerar informes de cobertura de código
+- Mandar el código a un sonar
+- Empaquetado
+- Generar una imagen de contenedor con el producto
+- Gestión de dependencias
+- ...
+
+Todo el trabajo lo realiza mediante plugins.
+
+## Estructura típica de un proyecto MAVEN
+
+    proyecto/
+     |- src/
+     |   |- main/
+     |   |   |- java/               -> Código fuente
+     |   |   |- resources/          -> Recursos (archivos adicionales que mi aplicación necesita)
+     |   |- test/
+     |       |- java/               -> Código fuente de las pruebas 
+     |       |- resources/          -> Recursos de las pruebas
+     |- target
+     |   |- classes/                -> .class generados por la compilación y recursos
+     |   |- test-classes/           -> .class generados por la compilación de las pruebas y recursos
+     |   |- miproyecto.jar
+     |- pom.xml                     -> Configuración del proyecto
+
+## Qué es el archivo pom.xml?
+
+Es el archivo de configuración de MAVEN. En él se definen:
+- Coordinadas del proyecto, lo que identifica al proyecto: groupId, artifactId, version
+- Metadatos del proyecto: nombre, descripción, url, licencia, desarrolladores, etc
+- Propiedades de configuración del proyecto para los plugins e internas que podemos usar dentro del propio archivo pom.xml
+- Plugins que se van a usar en el proyecto
+- Dependencias del proyecto
+
+## Al llamar a maven le pedimos que ejecute GOALS
+
+Cuáles son los más importantes:
+- compile               Compila los java que hay en src/main/java y deja los .class en la carpeta
+                        Copia los archivos de src/main/resources en la carpeta target/classes
+    ^                       
+- test-compile          Compila los java que hay en src/test/java y deja los .class en la carpeta
+                        Copia los archivos de src/test/resources en la carpeta target/test-classes
+    ^                    
+- test                  Ejecuta las pruebas que hay en target/test-classes...
+                        NOTA: Lo hace mediante un plugin llamado SUREFIRE, que invoca a su vez a JUnit 
+    ^
+- package               Genera el .jar o .war del proyecto en la carpeta target
+                        NOTA: Antiguamente al empaquetar una app web genera un .war
+                              Esto ya no.... Con Spring, generamos un .jar, que lleva embebido un servidor de aplicaciones (por defecto Tomcat)
+    ^
+- install               Copia el archivo .jar al repo local de maven: CARPETA .m2... DE FORMA QUE PUEDA USAR ESTE JAR como dependencia en otros proyectos locales
+
+- clean                 Borra la carpeta target
+
+- ~~build~~                 NO EXISTE: OJO CON ECLIPSE. En Eclipse, en menñu sale maven build... pero eso no es un goal de maven... Me sirve para ejecutar la última configuración de maven que haya hecho... pero no es un goal de maven.
+
+## Carpeta .m2
+
+Una carpeta oculta en el HOME del usuario que contiene los artefactos que maven ha descargado de internet... y los que ha generado él mismo y se instalan en la máquina.
+Cuando maven tiene que buscar una dependencia, primero la busca en esta ruta... si no la encuentra la descarga de un REPOSITORIO EN RED (Maven central, artifactory de la empresa...) a esta carpeta.
+
+---
+
+# JUNIT
+
+Un framework para el desarrollo de pruebas automatizadas JAVA.
+
+# Springboot
+
+Esta montado por encima de Spring... y nos facilita la creación y configuración inicial del un proyecto Spring.
+
+Springboot nos ofrece STARTERS... Hay un huevo:
+Los starters son colecciones de dependencias que nos facilitan la configuración de un proyecto Spring.
+
+---
+
+# JEE???
+
+J2EE = Java 2 Enterprise Edition
+ v
+JEE = Java Enterprise Edition
+ v
+JEE = Jakarta Enterprise Edition
+
+Es una colección de estandares para montar apps JAVA: JDBC, JMS, JPA, ...
+
+# Principio básicos
+
+Al desarrollar software, los desarrolladores tenemos que asegurarnos que estamos siguiendo los principios SOLID.
+Al probar software, los desarrolladores tenemos que asegurarnos que estamos siguiendo los principios FIRST.
+
+## Principios FIRST del desarrollo de pruebas
+
+FIRST, acrónimo de:
+F- Fast (Rápidas)
+I- Independent (Independientes)
+R- Repeatable (Repetibles)
+S- Self-validating (Autovalidadas) Validar todo lo que necesitan
+T- Timely (Oportunas) Aplican en el momento adecuado

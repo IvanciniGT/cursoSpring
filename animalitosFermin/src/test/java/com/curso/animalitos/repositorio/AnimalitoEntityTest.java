@@ -65,4 +65,29 @@ class AnimalitoEntityTest {
     }
 
 
+    @Test
+    @DisplayName("Alta de un animalito con datos no guays: nombre no guay") // TENGO QUE MONTAR MUCHAS COMO ESTA
+    void altaNombreNulo(){
+        // Dado un animalito con datos GUAYS
+        String nombre = null;
+        String tipo = "perro";
+        LocalDateTime fechaNacimiento = LocalDateTime.now();
+        AnimalitoEntity miAnimalito = AnimalitoEntity.builder()
+                .tipo(tipo)
+                .nombre(nombre)
+                .fechaNacimiento(fechaNacimiento).build();
+        // Cuando lo grabo
+        /*
+        try {
+            AnimalitoEntity animalitoPersistido = miRepositorio.save(miAnimalito);
+            // Y si llego a esta linea? MAL... no se está produciendo exception... mi código está mal
+            Assertions.fail("Se debería haber lanzado una exception por usar un nombre NULL");
+        }catch(Exception e){
+            // Si llego aquí es que la prueba ha ido bien
+        }
+        */
+        Assertions.assertThrows(Exception.class, miRepositorio.save(miAnimalito));
+    }
+
+
 }

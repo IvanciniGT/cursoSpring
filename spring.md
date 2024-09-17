@@ -1355,3 +1355,41 @@ I- Independent (Independientes)
 R- Repeatable (Repetibles)
 S- Self-validating (Autovalidadas) Validar todo lo que necesitan
 T- Timely (Oportunas) Aplican en el momento adecuado
+
+---
+
+# Programación FUNCIONAL
+
+## Qué es eso?
+
+Otro paradigma de programación... como la programación orientada a objetos, que no se incluyo en Java hasta la versión 8.
+
+En qué consiste? Decimos que un lenguaje de programación ofrece soporte para programación funcional cuando podemos referenciar una función desde una variable
+                 Y posteriormente ejecutar la función desde la variable
+
+
+```java
+String texto = "hola";
+```
+- "hola"       --->  Crea un objeto en RAM de tipo String con valor "hola"
+- String texto --->  Crea una variable llamada texto que puede apuntar a objetos de tipo String
+- =            --->  Asigno la variable al objeto
+ 
+```java
+texto = "adios";
+```
+
+- "adios"      --->  Crea un objeto en RAM de tipo String con valor "adios"
+                     Dónde? Donde estaba el "hola"? NO... en otro sitio... y llegados a este punto tengo en RAM 2 String ("hola" y "adios")
+- texto        --->  Desasigno la variable del objeto anterior
+- =            --->  Asigno la variable al nuevo objeto
+                        El objeto "hola" queda huerfano (no hay variable que lo appunte)... y se convierte en GARBAGE (basura) ... y quizás o quizás no en algun momento el recolector de basura de JAVA lo elimine de la RAM
+
+~~Asignar el valor "hola" a la variable texto.~~
+Asignamos la variable texto al valor HOLA
+
+Qué es una variable? Un espacio de memoria que tiene un nombre y un valor. NO... NI DE COÑA!
+El concepto de variable VARIA de lenguaje a lenguaje.
+Ese concepto está muy extendido... básicamente que una variable es como un cajoncito donde meto cosas... Y NI DE COÑA EN JAVA, NI JS, NI PYTHON, NI TS
+En C si o C++... pero en Java o python, o js NO.
+En JAVA una variable es una referencia a un objeto ubicado en RAM (tiene más que ver con el concepto de PUNTERO en C)

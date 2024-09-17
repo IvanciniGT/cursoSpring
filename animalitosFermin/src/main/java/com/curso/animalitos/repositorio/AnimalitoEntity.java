@@ -16,6 +16,8 @@ import java.time.LocalDateTime;
 @Table( name = "Animalitos" )
 public class AnimalitoEntity {
 
+    //public AnimalitoEntity(){} @NoArgsConstructor ES UN REQUISITO DE JPA para las @Entity
+
     @Id // Id de la tabla
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;

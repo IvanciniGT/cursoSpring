@@ -3,15 +3,43 @@ package com.curso.animalitos.repositorio;
 
 // Vamos a usar la versión 5 de JUnit... La última
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class ConceptosPruebasConJUnitTest {
 
+    @BeforeAll // Una funcion que ejecuto antes de Que comiencen LAS PRUEBAS
+    static void antesDeTodas(){
+        System.out.println("COMENZAMOS");
+    }
+    @AfterAll  // Una funcion que ejecuto después de Queacaben TODAS LAS PRUEBAS
+    static void despuesDeTodas(){
+        System.out.println("ACABAMOS");
+    }
+    @BeforeEach
+    void antesDeCadaUna(){
+        System.out.println("COMENZAMOS UNA PRUEBA");
+        // Crea un animalito nuevo que lo necesito
+    }
+    @AfterEach
+    void despuesDeCadaUna(){
+        System.out.println("ACABAMOS UNA PRUEBA");
+        // Limpia ciertos datos... para asegurar que no dejo mierda
+    }
+    // Estos hooks son muy utiles y los podemos usar sin problema
+
+
+    // Por defecto, no tengo control de cómo JUNIT ejecuta las pruebas (en que orden)
+    // Lo puedo forzar: usando @Order en cada test y @TestMethodOrder(MethodOrderer.OrderAnnotation.class) en la clase
+    // ESTO ES UNA MIERDA !!! ROMPE LA INDEPENDENCIA DE LOS TEST.
+    // MAS QUE ROMPERLA , la pregunta es PORQUE NECESITO ASEGURAR UN ORDEN? Qué pasa que si no lo aseguro no se ejecutan bien?
+    // Entonces es que no son INDEPENDIENTES.
+    // Si lo fueran el orden me da igual!
+    @Order(2)
     @Test
     @DisplayName("Probar a sumar 2 números")
     void probarASumar2NumerosTest(){
+        System.out.println("UNOS ");
         // Dado (Given) - Configuro un contexto para la prueba
         int numeroA= 5;
         int numeroB = 17;
@@ -21,6 +49,21 @@ class ConceptosPruebasConJUnitTest {
         // Entonces (Then) - Compruebo los resultados
         Assertions.assertEquals(resultadoEsperado, resultadoObtenido); // = GUAY!
         //System.out.println("He obtenido de la suma: " + resultadoObtenido + " Y debería haberse obtenido: "+ resultadoEsperado); = MIERDA !
+    }
+    @Order(1)
+    @Test
+    @DisplayName("Probar a sumar otros 2 números")
+    void probarASumar2OtrosNumerosTest(){
+        System.out.println("OTROS");
+        int numeroA= 5;
+        int numeroB = 11;
+        int resultadoEsperado = 16;
+        // Cuando (When) - Ejecuto lo que quiero probar
+        int resultadoObtenido = numeroA + numeroB;
+        // Entonces (Then) - Compruebo los resultados
+        Assertions.assertEquals(resultadoEsperado, resultadoObtenido); // = GUAY!
+        //System.out.println("He obtenido de la suma: " + resultadoObtenido + " Y debería haberse obtenido: "+ resultadoEsperado); = MIERDA !
+
     }
 }
 // Quién ejecuta la prueba? JUnit

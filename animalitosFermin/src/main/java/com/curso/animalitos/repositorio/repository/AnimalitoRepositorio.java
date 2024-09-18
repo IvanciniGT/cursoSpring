@@ -1,5 +1,6 @@
-package com.curso.animalitos.repositorio;
+package com.curso.animalitos.repositorio.repository;
 
+import com.curso.animalitos.repositorio.entity.AnimalitoEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -13,6 +14,7 @@ public interface AnimalitoRepositorio extends JpaRepository<AnimalitoEntity, Lon
 
     // Quiero una función custom para buscar animalitos por TIPO
     List<AnimalitoEntity> findByTipo(String tipo);
+    List<AnimalitoEntity> findByNombre(String nombre);
     // Y SPRING sigue haciendo Magia... En la clase que genere, me implementa esta función en automático...
     // por haberla llamado: findBy   con el sufijo: Tipo
 

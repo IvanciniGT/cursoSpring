@@ -1,5 +1,7 @@
 package com.curso.animalitos.repositorio;
 
+import com.curso.animalitos.repositorio.entity.AnimalitoEntity;
+import com.curso.animalitos.repositorio.repository.AnimalitoRepositorio;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -84,10 +86,40 @@ class AnimalitoEntityTest {
             Assertions.fail("Se debería haber lanzado una exception por usar un nombre NULL");
         }catch(Exception e){
             // Si llego aquí es que la prueba ha ido bien
-        }
-        */
-        //Assertions.assertThrows(Exception.class, miRepositorio.save(miAnimalito));
+        }*/
+
+        Assertions.assertThrows(Exception.class, () -> miRepositorio.save(miAnimalito) );
     }
 
+    @Test
+    @DisplayName("Alta de un animalito con datos no guays: tipo no guay") // TENGO QUE MONTAR MUCHAS COMO ESTA
+    void altaTipoNulo(){
+        // Dado un animalito con datos GUAYS
+        String nombre = "Firulais";
+        String tipo = null;
+        LocalDateTime fechaNacimiento = LocalDateTime.now();
+        AnimalitoEntity miAnimalito = AnimalitoEntity.builder()
+                .tipo(tipo)
+                .nombre(nombre)
+                .fechaNacimiento(fechaNacimiento).build();
+        Assertions.assertThrows(Exception.class, () -> miRepositorio.save(miAnimalito) );
+    }
+
+    @Test
+    @DisplayName("No se debe permitir actualizar el tipo de un animal") // TENGO QUE MONTAR MUCHAS COMO ESTA
+    void modificarTipo(){
+        String nombre = "Firulais";
+        String tipo = "perro";
+        LocalDateTime fechaNacimiento = LocalDateTime.now();
+        AnimalitoEntity miAnimalito = AnimalitoEntity.builder()
+                .tipo(tipo)
+                .nombre(nombre)
+                .fechaNacimiento(fechaNacimiento).build();
+        // Cuando lo grabo
+        AnimalitoEntity firulais = miRepositorio.save(miAnimalito);
+        firulais.setTipo("GATO");
+        AnimalitoEntity recuperado = miRepositorio.save(firulais);
+        // TODO: CUIDADO que H" no lanza exception
+    }
 
 }

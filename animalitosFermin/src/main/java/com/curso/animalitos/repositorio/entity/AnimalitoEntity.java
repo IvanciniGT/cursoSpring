@@ -1,4 +1,4 @@
-package com.curso.animalitos.repositorio;
+package com.curso.animalitos.repositorio.entity;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

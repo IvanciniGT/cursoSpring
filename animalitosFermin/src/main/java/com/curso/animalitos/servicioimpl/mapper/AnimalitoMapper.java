@@ -1,4 +1,4 @@
-package com.curso.animalitos.servicio.mapper;
+package com.curso.animalitos.servicioimpl.mapper;
 
 import com.curso.animalitos.repositorio.entity.AnimalitoEntity;
 import com.curso.animalitos.servicio.dtos.AnimalitoDTO;

@@ -6,12 +6,14 @@ import com.curso.animalitos.repositorio.repository.AnimalitoRepositorio;
 import com.curso.animalitos.servicio.AnimalitoService;
 import com.curso.animalitos.servicio.dtos.AnimalitoDTO;
 import com.curso.animalitos.servicio.dtos.NuevoAnimalitoDTO;
+import com.curso.emails.service.EmailsService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -35,11 +37,21 @@ class AnimalitoServiceImplTest {
     //   Hace lo mismo que hemos hecho a mano con @Primary
     @MockBean
     private AnimalitoRepositorio repositorioDeMentirijilla;
+    @MockBean
+    private EmailsService servicioEmails;
     // Creo un capturador de argumentos de llamadas a nuestro mock (repo de mierda!)
     // Esto es un sitio para alojar argumentos de tipo AnimalitoEntity
     // Pero ahora he de usar esto.
     @Captor
     private ArgumentCaptor<AnimalitoEntity> entidad;
+    @Captor
+    private ArgumentCaptor<String> destinatario;
+    @Captor
+    private ArgumentCaptor<String> asunto;
+    @Captor
+    private ArgumentCaptor<String> cuerpo;
+    @Value("${animalitos.email.destinatario}")
+    private String DESTINATARIO_EMAILS;
 
     public AnimalitoServiceImplTest(@Autowired AnimalitoService servicio){
         this.servicio=servicio;
@@ -83,19 +95,15 @@ class AnimalitoServiceImplTest {
         assertEquals(nuevoAnimalitoGuay.getTipo(), entidad.getValue().getTipo());
         assertEquals(nuevoAnimalitoGuay.getFechaNacimiento(), entidad.getValue().getFechaNacimiento());
 
-        // Si es una prueba UNITARIA, necesito aislarme del REPOSITORIO...
-        // Es más, quizás ese repositorio NI EXISTE
-        // Necesito crear mi Repositorio de Mentirijilla
-
         // - Compruebo que se haya SOLICITADO el envío un email?
         //   A quien? NO SE... HABRA UN REQUISITO QUE IMPONGA ESTO? subscripciones@animalitos-fermin.com
         //   Asunto? HABRA UN REQUISITO                             Nuevo animalito disponible
         //   Contenido? HABRA UN REQUISITO                          Tenemos a la venta a <NOMBRE> que es un <TIPO> muy bonito. Ven a verlo!
 
-
-        // El servicio llamará al AnimalitoRepositorio.nuevoAnimalito
-        // Se le devuelve un AnimalitoEntity... que tendrá un ID
-        // El servicio debe coger ese ID y meterlo en un AnimalitoDTO que es lo que se nos entrega como respuesta de esta función del servicio
+        verify(servicioEmails).enviarEmail(destinatario.capture(),asunto.capture(),cuerpo.capture());
+        assertEquals(DESTINATARIO_EMAILS, destinatario.getValue());
+        assertEquals("Nuevo animalito disponible",asunto.getValue() );
+        assertEquals("Tenemos a la venta a "+nuevoAnimalitoGuay.getNombre()+" que es un "+nuevoAnimalitoGuay.getTipo()+" muy bonito. Ven a verlo!", cuerpo.getValue());
 
     }
 

@@ -14,6 +14,9 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <springboot.version>2.7.18</springboot.version>
         <lombok.version>1.18.34</lombok.version>
+        <mapstruct.version>1.6.2</mapstruct.version>
+        <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
+        <maven.compiler.version>3.11.0</maven.compiler.version>
     </properties>
 
     <dependencies>
@@ -47,12 +50,58 @@
             <version>2.3.232</version>
             <scope>test</scope> <!--Esto solo es para pruebas... En la distribución de mi app no se incluye-->
         </dependency>
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+            <version>${mapstruct.version}</version>
+        </dependency>
+        <!--
+        Que mapstruct genere la implementación del mapper en tiempo de compilación
+        Por defecto, MapStruct genera la implementación en tiempo de EJECUCIÓN...
+        Y cuando Spring arranca, MapStruct aún no había creado esa clase... y fallaba
+        Ahora, la implementación se monta en tiempo de compilación
+        Y Spring al arrancar la reconoce sin problemas.
+        -->
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct-processor</artifactId>
+            <version>${mapstruct.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
 
     </dependencies>
 
     <build>
         <plugins>
-            <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-surefire-plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven.compiler.version}</version>
+                <!--Ya que mapstruct y lombok ambas 2 generan código en tiempo de compilación y que el
+                 código que genera mapstruct depende del código que genera lombok, que se apliquen en orden correcto.
+                De eso se encarga: lombok-mapstruct-binding
+                -->
+                <configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.mapstruct</groupId>
+                            <artifactId>mapstruct-processor</artifactId>
+                            <version>${mapstruct.version}</version>
+                        </path>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok-mapstruct-binding</artifactId>
+                            <version>${lombok-mapstruct-binding.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>

@@ -1,5 +1,6 @@
 package com.curso.animalitos.repositorio;
 
+import com.curso.animalitos.AplicacionDePrueba;
 import com.curso.animalitos.repositorio.entity.AnimalitoEntity;
 import com.curso.animalitos.repositorio.repository.AnimalitoRepositorio;
 import org.junit.jupiter.api.Assertions;

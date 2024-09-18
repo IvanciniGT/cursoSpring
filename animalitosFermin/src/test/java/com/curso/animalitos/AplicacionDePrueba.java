@@ -1,4 +1,4 @@
-package com.curso.animalitos.repositorio;
+package com.curso.animalitos;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 

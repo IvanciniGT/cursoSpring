@@ -1393,3 +1393,92 @@ El concepto de variable VARIA de lenguaje a lenguaje.
 Ese concepto está muy extendido... básicamente que una variable es como un cajoncito donde meto cosas... Y NI DE COÑA EN JAVA, NI JS, NI PYTHON, NI TS
 En C si o C++... pero en Java o python, o js NO.
 En JAVA una variable es una referencia a un objeto ubicado en RAM (tiene más que ver con el concepto de PUNTERO en C)
+
+
+
+
+---
+
+# Sistema de Animalitos Fermín.
+
+Antaño habríamos montado una aplciación WEB (.war) con JSPs... o similar...UN MONOLITO, usando una metodología en CASCADA para gestionar el proyecto.
+Me pide Fermín su web.. y a los 10 meses se la entrego.
+
+ESTO YA NO VALE ! ESTAMOS EN OTRO MUNDO !
+
+PROBLEMAS:
+                                                                        Cambio DTOs               Cambio dtos                     Entidad(name, type, date, multim?)
+FRONTEND                                                                BACKEND     cambio mappers                  Cambio mappers
+- Navegador (v2.0.0)                                     <- JSON --     REST (v1.2.0) -> Servicio de Animalitos (v2.1.0)  -> Repositorio (v2.0.0) -> BBDD (v2.0.0)
+    HTML WEB                                                            REST (v2.0.0)
+- App Android  (v1.1.0)
+- App iOS  (v2.0.0)
+- Cajero (DESKTOP)  (v1.0.0)
+- Asistente de voz (SIRI... ALEXA) (v2.0.0)
+- IVR (Interactive Voice Response) (v1.0.0)
+  + chatbot 
+
+    ESTO ES IRME A UNA ARQUITECTURA DE MICROSERVICIOS!
+
+Mundo WEB:
+- Hoy en día lo que montamos son SPA (Single Page Application)
+  Las páginas WEB de hoy en día las generamos de otra forma. YA NO SE GENERAN EN SERVIDOR (El HTML) eso es una cagada:
+    1. Reviento el servidor
+    2. Es un coñazo. Cada cambio (interacción del usuario) va a otra página web (otro HTML) que se carga entero en el navegador (NADA INTERACTIVO)
+  Hoy en día lo que hacemos es generar el HTML en el cliente. Y la página web va MUTANDO: COMPONENTES WEB
+
+  Web componentes es un estándar del W3C (igual que HTML, CSS) que permite definir componentes web... que se pueden reutilizar en cualquier página web.
+    Yo puedo tener un componente que reutilizo en 50 sitios de mi app... o en 50 apps. REUSABILIDAD, MANTENIBILIDAD e INTERACTIVIDAD
+  Ese estándar hoy en día le soportan TODOS LOS NAVEGADORES... y lo exportan mediante JS
+  JS es el único (hay alguna cosita más... pero poco usada) lenguaje hoy en día para montar FRONTALES: Angular, React, Vue, Svelte
+
+HTML es un lenguaje de marcado de propósito ESPECIFICO (sirve para renderizar contenidos visualmente en un navegador)
+HTML no vale como formato de intercambio general (porque es de propósito específico)
+JSON es un lenguaje de marcado de propósito GENERAL (Lleva el DATO... y conceptos SEMANTICOS)
+
+En versión (v1.0.0) cuando se daba de alta un animalito, ponía nombre, tipo, fecha nacimiento
+FERMIN: QUIERO FOTO
+FERMIN: Quiero fotoS, AUTIOS, VIDEOS y NOS EXPANDIMOS A NIVEL MUNDOAL
+
+v.1.0.0
+    {
+        id: 1
+        nombre: "Firulais"
+        tipo: "Perro"
+        fechaNacimiento: "2021-01-01"
+    }
+v.1.1.0
+    {
+        id: 1
+        nombre: "Firulais"
+        tipo: "Perro"
+        fechaNacimiento: "2021-01-01"
+        foto: "https://www.google.es/firulais.jpg"
+    }
+v2.0.0
+    {
+        id: 1
+        name: "Firulais"
+        type: "Perro"
+        birthdate: "2021-01-01"
+        multimedia: {
+            pics: [
+                "https://www.google.es/firulais.jpg"
+            ],
+            audios: [
+                "https://www.google.es/firulais.mp3"
+            ],
+            videos: [
+                "https://www.google.es/firulais1.mp4"
+                "https://www.google.es/firulais2.mp4"
+                "https://www.google.es/firulais3.mp4"
+            ]
+    }
+
+# Versionado de software
+
+v1.2.3
+            ¿Cúando se incrementa?
+MAJOR 1     Breaking changes (CAMBIO QUE NO RESPETA RETROCOMPATIBILIDAD)
+MINOR 2     Nueva funcionalidad
+PATCH 3     Arreglo de bugs

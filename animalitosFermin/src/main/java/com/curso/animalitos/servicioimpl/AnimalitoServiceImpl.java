@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 // Qué hace esta anotación? Es una variable de Component que al que lo vea sabe que conceptualmente esta implementación es un Servicio
@@ -79,7 +80,20 @@ public class AnimalitoServiceImpl implements AnimalitoService {
     }
 
     @Override
-    public AnimalitoDTO recuperarPorId(Long id) {
-        return null;
+    public Optional<AnimalitoDTO> recuperarPorId(Long id) { // LOGICA DE NEGOCIO
+        // Aqui podría tener cosas adicioanles que EN MI EMPRESA he decido que deben pasar cuando se recuperar un animal:
+        // ANOTARLO en algun sition... para explotar luego esa info:
+        //  - Este animalito está teniendo muchas visitas
+        //  - A la gente le gustan más los gatitos que los papagayos
+        //  - A Felipe le intersan mucho los COCODRILO... VAMOS A INUNDARLE DE CORREOS DE COCODRILOS a ver si pica!
+        /*
+        Optional<AnimalitoEntity> posibleAnimalitoEncontrado = repositorio.findById(id); // CAPA DE PERSISTENCIA
+        if(posibleAnimalitoEncontrado.isPresent())
+            return Optional.of(mapeador.animalEntity2AnimalDTO(posibleAnimalitoEncontrado.get()));
+        else
+            return Optional.empty();
+        */
+        return repositorio.findById(id).map(mapeador::animalEntity2AnimalDTO);
+
     }
 }

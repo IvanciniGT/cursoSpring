@@ -6,8 +6,9 @@ import lombok.EqualsAndHashCode;
 import java.time.LocalDateTime;
 
 @Data
-@EqualsAndHashCode(callSuper=true)
-public class NuevoAnimalitoDTO extends ModificarAnimalitoDTO{
+//@EqualsAndHashCode(callSuper=true)
+public class NuevoAnimalitoDTO{ //} extends ModificarAnimalitoDTO{
+    private String nombre;
 
     private String tipo;
 

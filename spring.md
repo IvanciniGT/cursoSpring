@@ -1482,3 +1482,36 @@ v1.2.3
 MAJOR 1     Breaking changes (CAMBIO QUE NO RESPETA RETROCOMPATIBILIDAD)
 MINOR 2     Nueva funcionalidad
 PATCH 3     Arreglo de bugs
+
+---
+
+# Cucumber
+
+Otro framework de pruebas, alternativo/complementario a JUnit.
+Tiene una ventajas gigantescas con respecto a JUnit
+Y una integración completa a su vez con JUnit
+
+
+# SWAGGER
+Es un estándar de documentación de APIs REST
+Estaba la verisón 1... Después la 2... y ahora la 3 ya no es Swagger... Le han cambiado el nombre:
+
+# OPENAPI
+Realmente OpenAPI es la versión 3 de swagger.
+
+Swagger/OpenAPI es un estandar que ha creado una empresa llamada SmartBear.
+
+# SmartBear hacen un huevo de productos de software:
+- Swagger/OpenAPI
+- SoapUI
+- ReadyAPI
+- Cucumber
+
+Una prueba definida en Cucumber, la puedo ejecutar en JAVA, en JS.. en el lenguaje que quiera. Es agnóstico de lenguaje.
+
+De hecho al trabajar con Cucumber, las pruebas se definen no en JAVA, ni en JS, ni en PYTHON... en un lenguaje propio de CUCUMBER que se llama Gherkin
+
+CUCUMBER = PEPINO
+GHERKIN =  PEPINILLO
+
+Pero Gherkin es genial... ya que realmente no es un lenguaje.. Es un conjunto de restricciones sobre los lenguajes NATURALES (Español, inglés, Asturiano, Aragonés, Catalán)

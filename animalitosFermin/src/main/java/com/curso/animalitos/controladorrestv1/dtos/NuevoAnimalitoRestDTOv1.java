@@ -6,11 +6,12 @@ import lombok.EqualsAndHashCode;
 import java.time.LocalDateTime;
 
 @Data
-@EqualsAndHashCode(callSuper=true)
-public class NuevoAnimalitoRestDTOv1 extends ModificarAnimalitoRestDTOv1 {
+//@EqualsAndHashCode(callSuper=true)
+public class NuevoAnimalitoRestDTOv1{ //extends ModificarAnimalitoRestDTOv1 {
 
     private String tipo;
 
     private LocalDateTime fechaNacimiento;
+    private String nombre;
 
 }

@@ -1,7 +1,6 @@
 package com.curso.animalitos.controladorrestv1;
 
 import com.curso.animalitos.controladorrestv1.dtos.AnimalitoRestDTOv1;
-import com.curso.animalitos.controladorrestv1.dtos.ModificarAnimalitoRestDTOv1;
 import com.curso.animalitos.controladorrestv1.dtos.NuevoAnimalitoRestDTOv1;
 import com.curso.animalitos.controladorrestv1.mapper.AnimalitoMapperRestV1;
 import com.curso.animalitos.servicio.AnimalitoService;
@@ -13,12 +12,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
 // Es un subtipo de @Component, pero no aporta solo SEMANTICA, APORTA FUNCIONALIDAD en SPRING
 // Spring va a hacer cosas por ser esto un controlador rest... y debo configurlo
 @RequiredArgsConstructor
+///api/v1/animalitos/123
 @RequestMapping("/api/v1") // Expón esto mediante http, en la ruta del servidor: /api/v1
 // https://servidor/api/v1
 public class AnimalitoRestControllerV1 {
@@ -54,7 +55,17 @@ public class AnimalitoRestControllerV1 {
     @GetMapping("/animalitos/{id}") // Se concatena la ruta con la de arriba
     // https://servidor/api/v1/animalitos/172634 <- GET
     public ResponseEntity<AnimalitoRestDTOv1> recuperarPorId(@PathVariable("id") Long id){
+        Optional<AnimalitoDTO> posibleAnimalitoEncontrado = servicio.recuperarPorId(id);
+        // 400: BAD_REQUEST
+        /*
+        if(posibleAnimalitoEncontrado.isPresent())
+            return new ResponseEntity<>(mapper.animalitoDTO2AnimalitoRestDTOv1(posibleAnimalitoEncontrado.get()), HttpStatus.OK);
+        else
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND); // 400: BAD_REQUEST
+        */
+        return posibleAnimalitoEncontrado.map(animalitoDTO ->
+                        new ResponseEntity<>(mapper.animalitoDTO2AnimalitoRestDTOv1(animalitoDTO), HttpStatus.OK)
+                ).orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
 
     }
-
 }

@@ -48,7 +48,8 @@
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
             <version>2.3.232</version>
-            <scope>test</scope> <!--Esto solo es para pruebas... En la distribución de mi app no se incluye-->
+            <scope>test</scope>
+            <!--Esto solo es para pruebas... En la distribución de mi app no se incluye-->
         </dependency>
         <dependency>
             <groupId>org.mapstruct</groupId>
@@ -67,6 +68,12 @@
             <artifactId>mapstruct-processor</artifactId>
             <version>${mapstruct.version}</version>
             <scope>provided</scope>
+        </dependency>
+        <!-- Quiero poder usar Cucumber para mis pruebas -->
+        <dependency>
+            <groupId>io.cucumber</groupId>
+            <artifactId>cucumber-java</artifactId>
+            <version>7.18.1</version>
         </dependency>
 
 

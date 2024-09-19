@@ -75,6 +75,20 @@
             <artifactId>cucumber-java</artifactId>
             <version>7.18.1</version>
         </dependency>
+        <!-- Permnite usar Suites de pruebas ejecutables mediante motores de pruebas alternativos  -->
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-suite</artifactId>
+            <version>1.11.0</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- Permite usar cucumber como motor de ejecucion de pruebas desde JUnit  -->
+        <dependency>
+            <groupId>io.cucumber</groupId>
+            <artifactId>cucumber-junit-platform-engine</artifactId>
+            <version>7.18.1</version>
+            <scope>test</scope>
+        </dependency>
 
 
     </dependencies>

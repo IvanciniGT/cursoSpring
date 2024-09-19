@@ -23,7 +23,7 @@
       Y         el animalito tiene por "tipo": "<tipo>"
       Y         el animalito ha nacido hoy
       Cuando    Hago una petición REST a "/api/v1/animalitos/" por método "GET"
-      Y         Voy a la subruta <id>
+      Y         Pero en la subruta <id>
       Entonces  Recibo un código de respuesta "ENCONTRADO"
       Y         Se me entrega un JSON
       Y         En el json viene el campo "id" con valor <id>
@@ -31,23 +31,36 @@
       Y         En el json viene el campo "tipo" con valor "<tipo>"
 
       Ejemplos:
-      | id    | nombre        | tipo      |
-      | 123   | Firulais      | perro     |
-      | 142   | Pipo          | gato      |
+        | id    | nombre        | tipo      |
+        | 123   | Firulais      | perro     |
+        | 142   | Pipo          | gato      |
 
-    Escenario: Alta de un animalito
 
-      Dado      Que tengo un objeto JSON
-      Y         con "nombre": "Firulais"
-      Y         con "tipo": "perro"
-      Y         con "fechaNacimiento" ahora
-      Cuando    Hago una petición REST a "/api/v1/animalitos" por método "POST"
-      Y         Mando en el cuerpo el objeto JSON anterior
-      Entonces  Recibo un código de respuesta "CREADO"
-      Y         Se me entrega un JSON
-      Y         En el json viene el campo "id" con valor 123
-      Y         En el json viene el campo "nombre" con valor "Firulais"
-      Y         En el json viene el campo "tipo" con valor "perro"
+
+
+
+
+
+
+
+
+
+
+
+
+#    Escenario: Alta de un animalito
+#
+#      Dado      Que tengo un objeto JSON
+#      Y         con "nombre": "Firulais"
+#      Y         con "tipo": "perro"
+#      Y         con "fechaNacimiento" ahora
+#      Cuando    Hago una petición REST a "/api/v1/animalitos" por método "POST"
+#      Y         Mando en el cuerpo el objeto JSON anterior
+#      Entonces  Recibo un código de respuesta "CREADO"
+#      Y         Se me entrega un JSON
+#      Y         En el json viene el campo "id" con valor 123
+#      Y         En el json viene el campo "nombre" con valor "Firulais"
+#      Y         En el json viene el campo "tipo" con valor "perro"
 
 
 

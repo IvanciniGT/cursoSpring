@@ -1,6 +1,6 @@
 package com.curso.animalitos.servicioimpl;
 
-import com.curso.animalitos.AplicacionDePrueba;
+import com.curso.animalitos.repositorio.AplicacionDePruebaRepositorio;
 import com.curso.animalitos.repositorio.entity.AnimalitoEntity;
 import com.curso.animalitos.repositorio.repository.AnimalitoRepositorio;
 import com.curso.animalitos.servicio.AnimalitoService;
@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-@SpringBootTest(classes = AplicacionDePrueba.class)
+@SpringBootTest(classes = AplicacionDePruebaServicio.class)
 @ExtendWith(SpringExtension.class)
 class AnimalitoServiceImplTest {
 

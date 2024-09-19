@@ -1,6 +1,5 @@
 package com.curso.animalitos.repositorio;
 
-import com.curso.animalitos.AplicacionDePrueba;
 import com.curso.animalitos.repositorio.entity.AnimalitoEntity;
 import com.curso.animalitos.repositorio.repository.AnimalitoRepositorio;
 import org.junit.jupiter.api.Assertions;
@@ -16,12 +15,28 @@ import java.util.Optional;
 
 // Antes de ejecutar estas pruebas, arranca esta aplicación en paralelo! (1)
 // A ella le pedirás los beans: NUESTRO REPOSITORIO
-@SpringBootTest(classes = AplicacionDePrueba.class)
+@SpringBootTest(classes = AplicacionDePruebaRepositorio.class)
 // Le indico a JUnit que algunos de los parámetros que le llegan en el constructor los debe solicitar a Spring
 @ExtendWith(SpringExtension.class)
 class AnimalitoEntityTest {
 
     private final AnimalitoRepositorio miRepositorio;
+
+    // ESTO ES CAGADA
+    // Y si el día de mañana montamos otros 20 servicios en el proyecto
+    // Cual es el problema de fondo??
+    // Estamos haciendo una prueba del Repositorio... y spring al arrancar está intentando crear beans de tod-o.
+    // Para que quiero un bean (una instancia) del Servicio de animalitos para hacer una prueba del repositorio?
+    // Por qué está tratando de crear una instancia del Servicio de Emails?
+    //  Porque la necesita quién? El AnimalitosServiceImpl
+    // Por qué está tratando de crear una instancia del AnimalitosServiceImpl?
+    //  Porque estamos arranco una aplicación (AplicacionDePrueba) que le indica a Spring que?
+    // SOLUCIONES?
+    // - Crear un mock: RUINA.... Y si tengo 20 servicios???
+    //   @MockBean
+    //   private EmailsService servicioEmails;
+    // - Mucho mejor: Mover la AplicacionDePrueba al paquete que incluye solo el repositorio
+    // - Mucho mucho mejor: Que el repo tuviera su propio proyecto independiente del resto!
 
     // Qué parámetros? Porque podría haber 50 en el constructor.. y que Spring provea algunos y otros los provea un proveedor de parámetros de JUnit.
     public AnimalitoEntityTest(@Autowired AnimalitoRepositorio miRepositorio){ // Inyección de dependencias

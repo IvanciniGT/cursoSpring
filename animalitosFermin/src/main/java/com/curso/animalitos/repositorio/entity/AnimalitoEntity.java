@@ -28,7 +28,7 @@ public class AnimalitoEntity {
     @Column(nullable=false, length=50, updatable = false)
     private String tipo;
 
-    @Column(nullable=false, updatable = false)
+    @Column(nullable=false, updatable = false, columnDefinition = "TIMESTAMP(9)")
     private LocalDateTime fechaNacimiento;
 
 }

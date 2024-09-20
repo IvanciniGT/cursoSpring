@@ -10,7 +10,6 @@ import java.time.LocalDateTime;
 public class NuevoAnimalitoRestDTOv1{ //extends ModificarAnimalitoRestDTOv1 {
 
     private String tipo;
-
     private String fechaNacimiento;
     private String nombre;
 

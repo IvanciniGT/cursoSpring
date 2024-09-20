@@ -42,7 +42,7 @@
             <version>${springboot.version}</version>
         </dependency>
 
-        <!--
+        <!-- Habilitar la seguridad -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
@@ -54,7 +54,26 @@
             <artifactId>jjwt</artifactId>
             <version>0.9.1</version>
         </dependency>
-        -->
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.13.3</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>2.13.3</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>2.13.3</version>
+        </dependency>
+
+
         <!-- Anotaciones para hacernos la vida más cómoda... ALELUYA !!!! -->
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -121,25 +140,7 @@
             <version>7.18.1</version>
             <scope>test</scope>
         </dependency>
-<!--
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>2.13.3</version>
-        </dependency>
 
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-core</artifactId>
-            <version>2.13.3</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-annotations</artifactId>
-            <version>2.13.3</version>
-        </dependency>
--->
     </dependencies>
 
     <build>

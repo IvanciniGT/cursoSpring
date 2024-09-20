@@ -1515,3 +1515,355 @@ CUCUMBER = PEPINO
 GHERKIN =  PEPINILLO
 
 Pero Gherkin es genial... ya que realmente no es un lenguaje.. Es un conjunto de restricciones sobre los lenguajes NATURALES (Español, inglés, Asturiano, Aragonés, Catalán)
+
+---
+
+# Pruebas
+
+Por ahora, en nuestro proyecto solo hemos hecho pruebas Unitarias.
+
+- Pruebas al Repositorio/Entidad (No depende de nadie) <- H2
+- Pruebas al Servicio            (Mockito: EmailServiceMock y un AnimalitosRepositoryMock)
+- Pruebas al Controlador         (MockMvc: cliente HTTP + Mockito: AnimalServiceMock)
+
+Nos faltarían pruebas de Integración:
+- AnimalitosServicio -> AnimalitosRepositorio <- H2 (Mockito: EmailServiceMock)
+  > Para el caso del happy path de alta de un animalito
+    1. Pido al servicio un animalito
+    2. En la BBDD estén los datos
+- AnimalitosServicio -> EmailsServicio (Mockito: AnimalitosRepositoryMock)
+  > Para el caso del happy path de alta de un animalito
+    1. Pido al servicio un animalito
+    3. Se haya mandado un email (Imap)
+
+- AnimalitosControlador -> AnimalitosServicio (Mockito: EmailServiceMock y un AnimalitosRepositoryMock)
+
+Nos faltarían las pruebas de Sistema (End2End)
+- Cliente HTTP -> AnimalitosControlador -> AnimalitosServicio -> AnimalitosRepositorio <- BBDD
+                                                              -> EmailsServicio
+  > Para el caso del happy path de alta de un animalito
+    1. Petición HTTP POST a /animalitos con un JSON
+    2. En la BBDD estén los datos
+    3. Se haya mandado un email (Imap)
+
+---
+
+# Principios SOLID de desarrollo de software
+
+Hemos estado aplciando lo principios solid de desarrollo de software en nuestro proyecto.
+En particilar hemos usado mucho el principio D de SOLID: Dependency Inversion Principle.
+
+A qué lo hemos aplicado?
+- En el AnimalitosServicio... que depende de un AnimalitosRepositorio
+  Hemos hecho que el animalitosServicio cree una instancia del AnimalitosRepositorio? NO
+  La instancia se la suministran... La suministra Spring!
+  Hemos configurado en Spring que cuando alguien pida un AnimalitosRepositorio, se le entregue una instancia de AnimalitosRepositorioImpl
+  Pregunta: Dónde hemos configurado eso? Tenemos en el código un AnimalitosRepositorioImpl? NO
+  - Esa clase la crea en automático Spring... y la inyecta en automatico (una instancia de ella) por haber hecho el `extends`:
+    `public interface AnimalitoRepositorio extends JpaRepository<AnimalitoEntity, Long>`
+
+- En el AnimalitosServicio... que depende de un EmailsServicio
+  Hemos hecho que el animalitosServicio cree una instancia del EmailsServicio? NO
+  La instancia se la suministran... La suministra Spring!
+  Hemos configurado en Spring que cuando alguien pida un EmailsServicio, se le entregue una instancia de EmailsServicioDummy
+  Pregunta: Dónde hemos configurado eso? 
+    ```java
+    @Service
+    public class EmailsServiceDummy implements EmailsService
+    ```
+
+Hemos aplicado el ppio D de SOLID: Dependency Inversion Principle a nuestras clases.
+
+Pero ese principio también lo aplicamos a más alto nivel... a nivel de paquetes (modulos)
+
+            AnimalitosRepositorio (INTERFAZ)
+                ^
+                |
+            AnimalitosServicio (INTERFAZ) -----------------> EmailsService (INTERFAZ)
+                ^                  ^                                          ^
+                |                  |                                          |
+                |                AnimalitosServicioImpl (CLASE)             EmailsServiceDummy (CLASE)
+                |                              ^                              ^
+                |                              |                              |
+            AnimalitosRestControllerV1 (CLASE) |                              |
+                ^                              |                              |
+                |                              |                              |
+            Aplicacion (CLASE)-----------------+------------------------------+
+
+Y quiero aplicar esto a este nivel.
+
+Deberíamos tener proyectos independientes MAVEN, con su propio POM.XML
+
+        AnimalitosRepositorio (API) - Abstracciones     <------+
+            ^                                                  |
+    +-> AnimalitosServicio    (API) - Abstracciones     <------+-  AnimalitosServicioImpl     ALGO CONCRETO (Implementación)  <-----+
+    |       ^                                                  |                                                                    |
+    |   EmailsService         (API) - Abstracciones     <------+   EmailsServiceDummy         ALGO CONCRETO (Implementación)  <-----+ Aplicación
+    |       ^                                                           |                                                           |
+    |       |                                                           |                                                           |
+    |       +-----------------------------------------------------------+                                                           |
+    |                                                                                                                               |
+    +------------------------------------------------------------- AnimalitosRestControllerV1 ALGO CONCRETO (Implementación)  <-----+
+    
+
+A nivel del pom.xml del application, es donde voy a coser el proyecto (decir que implementaciones de las interfaces voy a usar)
+
+Estamos llevando el ppo de Dependency Inversion Principle a nivel de proyectos.
+
+De hecho este diseño nos ayuda también a respetar el principio de la S: Single Responsability Principle
+- El proyecto AnimalitosRepositorio se encarga de la gestión de los datos de animalitos
+- El proyecto AnimalitosServicio se encarga de la lógica de negocio de los animalitos
+- El proyecto EmailsService se encarga de la gestión de los emails
+- El proyecto AnimalitosRestControllerV1 se encarga de la exposición de los servicios REST de animalitos
+- El proyecto AnimalitosServicioImpl se encarga de la implementación de la lógica de negocio de los animalitos
+- El proyecto EmailsServiceDummy se encarga de la implementación de la gestión de los emails
+- El proyecto Aplicación se encarga de la configuración que implementaciones de las interfaces va a usar
+
+ESTO es lo que hace que no MONTE UN MONOLITO... sino que monte una aplicación MODULAR, con componentes desacoplados.
+
+Aplicación MODULAR... eso lo reflejaremos en el pom.xml de la aplicación... con una palabrita especial que tenemos en los archivos pom.xml que aún no hemos usado:
+`module`
+
+Maven tiene soporte para proyectos MULTI-MODULO
+
+Pero lo podemos llevar incluso a otro nivel: A nivel de REPOSITORIOS GIT
+
+Git tiene soporte para proyectos MULTI-MODULO, mediante el concepto de `submodule`
+
+Donde puedo tener un repo principal, que apunta a otros repositorios (submodulos)... y que puedo clonar en un solo comando el repo principal y que metraiga todos los submodulos.
+
+Es más... el gran cambio que se hiszo en JAVA 1.9 fue el proyecto Jigsaw... que permite montar aplicaciones modulares en JAVA.
+Y añade una palabra nueva al lenguaje JAVA 
+
+- module
+  - package
+    - clase
+    - interface
+
+```java
+    // module-info.java
+    module servicioAnimalitos {
+        requires repositorioAnimalitos;
+        requires emailsService;
+        exports com.curso.servicio;
+    }
+```
+
+Y os dije que:
+- Lenguajes (JAVA)
+- Herramientas (git, maven)
+- Frameworks (Spring)
+- Metodologías (Agile, Scrum, Devops)
+- Arquitecturas (Clean Architecture)
+
+Evolucionan en paralelo... y se influyen mutuamente.... para resolver los nuevos problemas que nos encontramos en el desarrollo de software, con las nuevas realidades del mercado. (Multiples frontales, necesidad de despliegues parciales, ir dando entregas de los distintos componentes(frontales) poco a poco)
+
+
+# Evidentemente....
+
+- Cuando se empieza a adoptar esto en una empresa que tiene un legacy... vamos poco a poco... pero sin perder la vista del objetivo final. SI ES QUE VOY !!!!
+- Otro gallo canta si montamos un proyecto desde 0... y lo montamos con esta arquitectura... y con esta metodología de trabajo.
+
+---
+
+Tenemos ya un servicio REST montado.
+Se consumirá desde un frontal... o muchos... u otros servicios de backend....
+
+Aunque nos falta una pieza clave en todo esto.
+Tengo mi servicio... quién puede llamarlo? TODO EL MUNDO?
+
+Me refiero... Esto lo desplagaré en un servidor en un entorno de producción...  HOY EN DIA IRA EN un contenedor dentro de un cluster de kubernetes.
+
+Pero quién puede hacer?
+POST ---> https://miapp.miservidor/api/v1/animalitos
+GET  ---> https://miapp.miservidor/api/v1/animalitos
+GET  ---> https://miapp.miservidor/api/v1/animalitos/{id}
+
+Cualquiera?
+- Cualquiera debe poder dar de alta animalitos en la tienda de fermín? NO
+
+# Seguridad: Autenticación y Autorización
+
+Y esto ha cambiado tanto o más que todo lo demás.
+
+Estaís trabajando con JWT (JSON Web Token)?
+
+## Qué pasaba cuando antes alguien hacía login en una aplicación?
+
+1. En cuaantito un usuario accedía a una aplciación WEB, el servidor de aplicaciones creaba una sesión.
+  Qué es eso de una sesión http? HttpSession
+  Una sesión es una cajita, con compatimentos donde puedo guardar datos, asicoados a una clave (como un hashmap)
+  Ese cajón (SESION) se identifica por in ID único, autogenerado por el servidor de aplicaciones.
+  Y ese ID se manda como respuesta de la petición HTTP inicial que hace el cliente... y se guarda en su navegador en una COOKIE (JSESSIONID)
+  Cada vez que hacemos cualquier petición al sevidor, el navegador debe mandar esa COOKIE... y el servidor de aplicaciones la usa para saber a qué sesión pertenece la petición.
+2. Le mostramos una pantalla de login... y el usuario mete su usuario y contraseña
+3. Le autenticamos... y el la sesión guardamos el usuario autenticado
+4. En las sucesivas peticiones, cuando se recibe el JSESSIONID, se recupera la sesión... y se recupera el usuario autenticado... y le dejo que haga cosas
+
+Nosotros no gestionamos manualmente el JSESSIONID... lo hace el servidor de aplicaciones (Tomcat, JBoss, Weblogic, Websphere)
+Y cuando me viene un HttpRequest, el servidor de aplicaciones me da un objeto HttpSession... y puedo meter cosas en él... y recuperarlas.
+
+## ESTO MURIO!!!! YA NO TRABAJAMOS NI PARECIDO A ESTO!
+
+Hoy en día montamos apps STATELESS (sin estado)... El servidor NO GUARDA NADA del cliente que hace la petición... ni tiene una sesión para él.
+Es SU PROBLEMA (del usuario -> app cliente) el guardar sus datos de sesión... y mandarlos en cada petición.
+
+    App WEB                             --- json ->   Servicios Web (STATELESS) 
+    App js que corre en un navegador    <-- json --
+
+
+Era un problema el trabajar con sesiones:
+- Si teníamos varios servidores en paralelo (Alta disponibilidad)... teníamos que tener un mecanismo para que la sesión se replicara en todos los servidores
+  o más chapuza... que el balanceador de carga mandara siempre las peticioines del mismo cliente al mismo servidor (Sticky session)
+- Recargo al servidor con la gestión de sesiones... y la RAM es cara (Y está limitada) Me limita mucho el número máximo de usuarios que puedo tener logados en mi app
+   OJO: Aunque no estén haciendo nada en un momento dado... si están logados... tengo que tener su sesión en RAM
+- Configurábamos periodos de expiración de sesiones... y si el usuario no hacía nada en un tiempo... se le desconectaba: 30 minutos sin hacer nada... se desconecta
+- Me podían robar la cookie de sesión... y hacerse pasar por mí... y hacer cosas en mi nombre
+   Es más... si estaba logueado... y tenía cookies de sesión en mi navegador... Pinchando en un link de un email, podía entrar directamente en la app... sin tener que logarme
+   (AGUJERO DE SEGURIDAD GORDO)
+
+## Hoy en día lo que trabajamos son con TOKENS de SEGURIDAD (JWT: JSON Web Token)
+
+Los servidores no almacenamos nada del cliente... ni tenemos sesiones.
+El cliente, la primera vez que se conecta al servidor, se autentica... y el servidor le devuelve un TOKEN (que tendrá una caducidad)
+El cliente debe mandar ese TOKEN en cada petición... y el servidor lo usará para saber quién es el cliente que hace la petición.
+Ahí dentro del token viene mucha información:
+- Quién es el usuario (su email, su nombre)
+- Qué puede hacer (sus roles)
+- Cuándo caduca el token
+- Cualquier otra información que queramos meter
+- Una firma digital... creada por el emisor del token, que garantiza que el token no ha sido manipulado
+
+## Pregunta!
+
+En que app no usamos autenticación y autorización? POCAS
+
+Y antes en cada app, montábamos sus propios mecanismos de autenticación y autorización... y cada uno era un mundo.
+Es más, en muchos casos, hasta teníamos en cada app su propia BBDD de usuarios y roles y contraseñas.
+Se intentó unificar un poquito con eso del LDAP (Lightweight Directory Access Protocol- Directorio de personas ... una BBDD de usuarios)... pero no era la panacea.
+
+No tiene sentido:
+- No quiero estar reimplementando la rueda en cada app
+- Lo de la seguridad es muy complicao! Y no sé de eso! No tiengo npi de eso!
+  > Cómo se guarda una contraseña en una BBDD? ENCRIPTADA
+    RUINA ! Problemón de seguridad de cojones... Como me ganen la BBDD y tengan la clave, me sacan todas las contraseñas!
+    Una contraseña NUNCA se guarda en BBDD. Lo que se guarda es un HASH (una huella)
+    De hecho los sistemas buenos de gestión de usuarios, lo que guardan es un hash no de la contraseña...
+        Si no un hash del hash del hash del hash (y así unas 1024 veces) de la contraseña.
+
+Hoy en día hay estándares acerca de cómo gestionar / generar esos tokens: OAuth (OpenConnect)
+Y tenemos muchos programas que se encargan de su emisión: Provedores de identidad (IAM)
+Además, estos tokens viajan por la red fácilmente.
+Puedo tener un IAM que ha generado un token, que luego es consumido por otra app.
+Quien entrar a una app web por ahi ... y al logearme me permite hacerlo con mi cuenta de google: Eso me lleva al IAM de google, que me genera un token.
+Y mi app usa ese token.
+Cuando me quiero conectar con mi app, le mando el token que tengo firmado por google, que pone quien soy, mi email (mis amigos)... y mi app, si confía en google, puede usar ese token para saber quién soy. Incluso puede preguntarle a google... oye este token que SE que has firmado tu (veo tu firma), sigue siendo válido(a ver si se ha revocado.. el usuario ha hecho logout)
+
+## Algoritmos de HASH
+
+Desde que teneís 10 años... en el DNI.
+La letra del DNI es una huella (HASH) del número.
+ 12345678A
+
+ Cómo se calcula la letra del DNI? Tomo el número, lo divido entre 23 y me quedo con el resto, que estará entre 0 y 22.
+ Y el ministerio de interior tiene una tabla asignando una letra a cada numero.
+ - El mismo número siempre genera la misma huella (en nuestro caso, la misma letra)
+ - La huella es un resumen del dato: Desde la letra es imposible regener el número
+ - Hay "poca" (lo que yo considere poca) probabildiad de que 2 datos distintos generen la misma huella: PROBABILIDAD DE COLISION
+    En el caso del mecanismo de un dni: 1/23. Para el ministerio de interior eso es "suficientemente poco"
+
+En informática usamos algoritmos de hash más complejos... que tienen menos probabildiad de COLISION.
+- MD5
+- SHA1 (Probabilidades de colisión muy bajas 1/2^160)
+
+# Un flujo normal de validación hoy en día sería:
+
+Tengo una app (web o no: mobile) que quiere acceder a ciertas funcionalidades de un servidor (alta de animalito).
+La app antes de hacer esa operación, que sabe que está protegida, redirige al usuario a un IAM (Google, Facebook, mi propio IAM). 
+Ahí es donde se hace login... y se genera un token, que es entregado a la app (cliente del servidor)... no al servidor.
+La app reviosa superficialmente que el token sea válido (lleve una firma adecuada y esté firmado por el IAM de confianza.. viene un role adecuado: ALTA DE ANIMAL)
+
+La app manda una petición a un servidor, incluyendo el token.
+El servidor hace una revisión más en profundidad del token:
+- La misma que la app cliente
+- Y además pregunta al IAM que lo ha firmado si sigue siendo válido (no ha sido revocado)
+- Y en ese caso, ya tiene los datos del usuario y los roles
+- Y ya decide si le deja o no hacer la operación que ha pedido.
+
+Y eso se hace en cada petición.
+
+Mi app se quita de en medio en todo ese follón de la autenticación y autorización, usando una herramiemnta profesional (que a lo mejor requiere doble autenticacion, que tiene un sistema de alertas, que tiene un sistema de revocación de tokens, que tiene un sistema de auditoría de accesos)
+
+Otra cosa es que mi app, puede tener su BBDD complementaria de usuarios... con datos muy específicos de mi app que no están en el IAM.
+
+# Spring y seguridad
+
+Spring me permite montar estas cosas...
+También me permite trabajar a la vieja usanza... con sesiones... con cookies... con JSESSIONID... ROLLITO 2000
+
+Quiero una app con componentes desacoplados... mi app debe ser agnostica del sistema de autenticación y autorización que use.
+
+Claro... una cosa es lo que hagamos para poner el sistema en producción (el IAM que se use) y otra cosa el que yo use para pruebas... o para desarrollo.
+Y Spring también me da utilidades para eso.
+
+## Identificación, autenticación y autorización
+
+- Yo me identifiqué el primer día? SI... dije que era IVAN
+- Vosotros me autenticasteis? NO... no me pedisteis el DNI
+- Autorización: SABIENDO QUE ERES QUIEN DICES SER (ya autenticado)... si tienes permiso para hacer UNA TAREA? ROLES
+
+# Vamos a necesitar muchas cosas en Spring para meter seguridad.
+
+Pero esas cosas se definen en diferentes capas de la aplicación.
+
+- En la capa donde defino el servicio REST (AnimalitosRestControllerV1)... qué necesito configurar (a nivel conceptual):
+
+  - nuevoAnimalito                  TENER UN USUARIO AUTENTICADO y con ROLE DE ADMIN
+  - recuperarAnimalitos             QUE CUALQUIERA PUEDA
+  - recuperarAnimalito(id)          QUE CUALQUIERA PUEDA
+
+    Spring nos da anotacioones para estas cosas:
+    @PreAuthorize("hasRole('ADMIN')")  // Para el método nuevoAnimalito
+    @PostAuthorize("hasRole('ADMIN')") // Para el método nuevoAnimalito
+    @Secured("ROLE_ADMIN")            // Para el método nuevoAnimalito
+    @RolesAllowed("ROLE_ADMIN")       // Para el método nuevoAnimalito
+
+- Pero no es todo.. claro...
+  A nivel de la app necesito?
+  - 1. Configurar el mecanismo de autenticación y autorización:
+    - BBDD propia de usuarios y roles
+    - JWT
+  - 2. Establecer un filtro de seguridad en la app base:
+    - Aquí se meterán por ejemplo políticas de CORS (Cross Origin Resource Sharing)
+    - Una BBDD con información extendida de los usuarios (nombre, apellidos, email, roles, etc) que no venga en el token
+    - AQUI tengo 2 opciones:
+      - Yo voy a generar Tokens... y los voy a validar... y voy a generar roles... y voy a validar roles
+      - Delego en un IAM... que me genere tokens... y me los valide... y me entregue roles
+  - Pero... para poder probar mi controlador, que no hay app todavía (ese será el sistema)... yo estoy con un componente... y me la debe pelar el IAM
+    Necesito aislarme de eso... Necesitaré un IAM de prueba... que me genere tokens... y que me los valide... y que entregue roles
+
+## Que vamos a montar?
+
+Lo de abajo (de ahí arriba). Vamos a montar un IAM de prueba... que nos genere tokens... y que los valide... y que entregue roles.
+Con una BBDD de usuarios que necesitaré con unos usuarios de pega... para jugar.
+
+Una generalización de lo que vamos a montar, es lo que se montaría si quisiera que mi alicación gestionase sus propios usuarios y roles... y generase sus propios tokens.
+
+Si quisieramos que mi app real conestase con un IAM externo... La cosa cambia... CADA IAM tiene su propio protocolo de comunicación y demás ... Y ME DAN librerías implementando la seguridad de Spring para que se conecten con ellos.
+
+En el curso no vamos a montar un IAM... pero yo os voy a dejar una URL de un repo que tengo en GITHUB de otra formación... donde instalo:
+- Keycloak: MEDIANTE UN CONTENEDOR
+- Uso la librería de KeyCloak para Spring para que mi app se conecte con él
+---
+# CORS
+
+Los servidores pueden publicar una lista de ORIGENES que pueden acceder a sus recursos.
+Yo soy el servidor que está sirviendo en https://miempresa.com
+
+Una aplicación WEB que corre en un navegador en https://miapp.miempresa.com quiere acceder a los recursos del servidor.
+Esa app la tengo montada en JS... y corre en un navegador... y hace peticiones HTTP al servidor.
+Si el servidor no ha publicado en su lista CORS que https://miapp.miempresa.com puede acceder a sus recursos... OJO: el navegador no dejará hacer la petición.
+
+El servidor no valida una mierda !!!!!
+DICHO DE OTRA FORMA: Si en lugar de un navegador, hago la petición por CURL... el servidor me la va a servir igualmente.
+O desde un programa que hago JAVA... 

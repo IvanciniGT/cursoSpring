@@ -20,8 +20,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
                                                             // Al hacerlo, Spring buscará un SecurityFilterChain... que hayamos configurado
                                                             // Para aplicarlo
                                                             // COÑO !!! que suerte que aquñi mismo lo hemos definido!
-@EnableGlobalMethodSecurity(prePostEnabled = true)          // Es la que le indica a Spring que lo socntroladores, en sus mmappings (GET POST...
+//@EnableGlobalMethodSecurity(prePostEnabled = true)          // Es la que le indica a Spring que lo controladores, en sus mmappings (GET POST...
                                                             // Pueden usar anotaciones: PRE Y POST
+@EnableGlobalMethodSecurity(jsr250Enabled = true, prePostEnabled = true) // Tambien poder usar anotaciones RolesAllowed
 public class SecurityConfig {
 
     // Definir la cadena de filtros de seguridad

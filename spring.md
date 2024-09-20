@@ -1873,3 +1873,121 @@ O desde un programa que hago JAVA...
 
 Token que nos devuelve:
 eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyIiwiZXhwIjoxNzI2ODY2NDEwLCJpYXQiOjE3MjY4MzA0MTB9.H1lMNGZsqcX6RrUW-hl2E7f_3ri3P2plozx-pd2FGcE
+
+
+docker 
+podman
+
+---
+
+# Programación con Aspectos en Spring
+
+Con los aspectos lo que definimos es una clase Proxy que se va a meter por delante de la ejecución de un método de una clase... y me permite ejecuatr código antes, después o en lugar de la ejecución del método. Sin tocar la clase original.
+
+son inyecciones que se hacen dinámicamente en tiempo de ejecución.
+
+Yo tengo mi clase A, que llama a un método de la clase B: metodoB()
+
+```java
+
+public class A {
+    public void metodoA() {
+        B b = new B();
+        b.metodoB();
+    }
+}
+
+public class B {
+    public void metodoB() {
+        System.out.println("Hola");
+    }
+}
+
+```
+
+Puedo configurar un proxy en JAVA que se meta por delante de la ejecución de metodoB() de la clase B... y me permita ejecutar código antes, después o en lugar de la ejecución del método.
+
+Si lo hiciera en tiempo de desarrollo... se vería algo asi:
+
+```java 
+public class ProxyB extends B {
+    public void metodoB() {
+        System.out.println("Antes de ejecutar el método");
+        super.metodoB();
+        System.out.println("Después de ejecutar el método");
+    }
+}
+```
+
+El problema de hacerlo en tipo de desarrollo es que tengo que modificar la clase A... para que en lugar de instanciar un objeto de la clase B... instancie un objeto de la clase ProxyB.
+
+
+```java
+
+public class A {
+    public void metodoA() {
+        B b = new ProxyB();
+        b.metodoB();
+    }
+}
+
+```
+
+Una inyeccion de dependencias me ayudaría aquí:
+
+```java
+
+public class A {
+    private B b;
+    public A(B b) {
+        this.b = b;
+    }
+    public void metodoA() {
+        b.metodoB();
+    }
+}
+
+```
+
+Y luego configuro dinámicamente en tiempo de ejecución que la clase B sea sustituida por la clase ProxyB.
+
+Eso está guay.. y la verdad que la inyección de dependencias me ayuda mucho a no tener que tocar A.
+
+Ahora bien, que pasa si la tarea que quiero hacer antes del método B... la quiero hacer en 50 sitios de mi app?
+
+Alé a crear proxies.... y a modificar 50 clases. vaya tostón...
+
+Y ahí sale la programación con aspectos.
+
+Un aspecto nos permite crear proxies que se meten por delante de la ejecución de métodos de clases... y me permiten ejecutar código antes, después o en lugar de la ejecución del método... sin tocar la clase original, ni la clase desde la que se llama al método.
+
+Y además, puedo reutilizar una función que quiero hacer en 50 sitios de mi app.
+
+# Mundo web
+
+## HTTP
+
+Es un protocolo muy usado.
+Pero... tiene sus limitaciones.
+Es un protocolo PARA COMUNICACIONES SINCRONAS de tipo PETICION (Request) -> RESPUESTA (Response)
+
+    Cliente (Navegador) -Request-> Servidor (HTTP) -Response-> Cliente (Navegador)
+
+
+En ocasiones se me queda corto... y necesito comunicaciones ASINCRONAS y BI-DIRECCIONALES
+
+    Cliente (Navegador) -Mensaje->  Servidor (HTTP)
+    Servidor (HTTP)     -Mensaje->  Cliente (Navegador)
+
+Ejemplos: 
+- Chat
+- Barrita de notificaciones en mi app, de forma que cuando alguien por ahí de de alta un nuevo animalito, a mi me salte en la pantalla un aviso.
+
+Esto me lo resuelve el protocolo ws (WebSockets)
+
+    http://miapp.com/animalitos
+    ws://miapp.com/animalitos
+
+    Desde el cliente abro una conexión ws con el servidor... y ya puedo mandar mensajes en ambas direcciones.
+        El cliente en cualquier momento puede mandar un mensaje al servidor
+        El servidor en cualquier momento puede mandar un mensaje al cliente

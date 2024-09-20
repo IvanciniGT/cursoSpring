@@ -11,7 +11,7 @@ public class NuevoAnimalitoRestDTOv1{ //extends ModificarAnimalitoRestDTOv1 {
 
     private String tipo;
 
-    private LocalDateTime fechaNacimiento;
+    private String fechaNacimiento;
     private String nombre;
 
 }

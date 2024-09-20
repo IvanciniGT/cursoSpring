@@ -35,14 +35,17 @@ public class AnimalitoRestControllerV1 {
         // Casi... Lo que devolvemos es un ResponseEntity, que en el cuerpo (BODY) del request devolverá un JSON con la estructura de AnimalitoRestDTOv1
         // Ese ResponseEntity es lo que antiguamente era un HttpServletResponse
         // El ResponseEntity, además de el cuerpo lleva otros datos, el principal: CODIGO DE RESPUESTA HTTP DEL SERVIDOR: 200, 201, 404,...
-        try {
+        //try {
             NuevoAnimalitoDTO nuevoAnimalServicio = mapper.nuevoAnimalitoRestDTOv1_2_NuevoAnimalitoDTO(nuevoAnimal);
             AnimalitoDTO devuelto = servicio.nuevoAnimal(nuevoAnimalServicio);
             AnimalitoRestDTOv1 paraDevolverAqui = mapper.animalitoDTO2AnimalitoRestDTOv1(devuelto);
             return new ResponseEntity<>(paraDevolverAqui, HttpStatus.CREATED); // 201: CREATED
-        } catch(Exception e){
+    /*
+    } catch(Exception e){
+            e.printStackTrace();
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST); // 400: BAD_REQUEST
         }
+     */
     }
 
     @GetMapping("/animalitos") // Se concatena la ruta con la de arriba

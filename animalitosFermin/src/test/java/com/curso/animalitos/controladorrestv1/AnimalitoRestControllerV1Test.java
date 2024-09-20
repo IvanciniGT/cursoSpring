@@ -2,7 +2,6 @@ package com.curso.animalitos.controladorrestv1;
 
 import com.curso.animalitos.servicio.AnimalitoService;
 import com.curso.animalitos.servicio.dtos.AnimalitoDTO;
-import com.curso.animalitos.servicioimpl.AplicacionDePruebaServicio;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +17,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -30,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc // Spring, quiero un cliente HTTP para atacar al tomcat que hayas levantado... Tu sabrás en qué puerto está. Yo npi! (1)
 class AnimalitoRestControllerV1Test {
 
-    private MockMvc clienteHttp; // (1)
+    private final MockMvc clienteHttp; // (1)
 
     @MockBean
     private AnimalitoService servicioDeMentirijilla;
@@ -78,7 +78,17 @@ class AnimalitoRestControllerV1Test {
         resultado.andExpect(jsonPath("$.id").value(id));
         resultado.andExpect(jsonPath("$.nombre").value(nombre));
         resultado.andExpect(jsonPath("$.tipo").value(tipo));
-        resultado.andExpect(jsonPath("$.fechaNacimiento").value(fecha.toString()));
+        //resultado.andExpect(jsonPath("$.fechaNacimiento").value(fecha.toString()))
+        resultado.andExpect(mvcResult -> {
+            String jsonResponse = mvcResult.getResponse().getContentAsString();
+            // Extraer el valor de fechaNacimiento usando JsonPath
+            String fechaNacimientoStr = com.jayway.jsonpath.JsonPath.read(jsonResponse, "$.fechaNacimiento");
+            // Convertir el String del JSON a LocalDateTime
+            LocalDateTime fechaDesdeJson = LocalDateTime.parse(fechaNacimientoStr);
+            // Comparar el LocalDateTime del JSON con el original
+            assertEquals(fecha, fechaDesdeJson);
+        });
+
     }
 
     // CUCUMBER !

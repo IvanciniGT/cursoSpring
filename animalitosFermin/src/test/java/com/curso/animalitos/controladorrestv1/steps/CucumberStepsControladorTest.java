@@ -6,6 +6,7 @@ import com.curso.animalitos.servicio.dtos.AnimalitoDTO;
 import io.cucumber.java.es.Cuando;
 import io.cucumber.java.es.Dado;
 import io.cucumber.java.es.Entonces;
+import io.cucumber.spring.CucumberContextConfiguration;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.platform.suite.api.IncludeEngines;
 import org.junit.platform.suite.api.SelectClasspathResource;
@@ -45,10 +46,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ExtendWith(SpringExtension.class) // A JUnit le indico que argumentos del contructor pueden ser provistos por Spring
 @SpringBootTest(classes = AplicacionDePruebaControladorV1.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc // Spring, quiero un cliente HTTP para atacar al tomcat que hayas levantado... Tu sabrás en qué puerto está. Yo npi! (1)
-// @CucumberContextConfiguration. cucumber-spring nos da esta dependencia, para que podamos usar @Autowire en ficheros instanciados por Cucumber
-public class CucumberStepsControlador {
+@CucumberContextConfiguration // Permite a Cucumber pedir dependencias a Spring
+//. cucumber-spring nos da esta dependencia, para que podamos usar @Autowire en ficheros instanciados por Cucumber
+public class CucumberStepsControladorTest {
 
-    //@Autowired
+    @Autowired // En este caso, que Cucumber puede ccrear una instancia de la clase, cucumber no admite que la clase reciba parametros. No nos queda opción
     private MockMvc clienteHttp; // (1)
 
     private String rutaPeticion;
@@ -58,10 +60,6 @@ public class CucumberStepsControlador {
 
     @MockBean
     private AnimalitoService servicioDeMentirijilla;
-
-    public CucumberStepsControlador(@Autowired MockMvc clienteHttp){
-        this.clienteHttp=clienteHttp;
-    }
 
     @Dado("Que tengo un servicio de animalitos en el que no existe el animalito con id {int}")
     public void federico(Integer id) {

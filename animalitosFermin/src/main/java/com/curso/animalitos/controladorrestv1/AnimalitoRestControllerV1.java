@@ -31,9 +31,9 @@ public class AnimalitoRestControllerV1 {
     private final AnimalitoService servicio;
 
     //@PreAuthorize("hasRole('ADMIN')") // dentro tenemos que dar la condición de preautorización. Ahi dentro Spring tiene un lenguaje propio llamado SPEL
-    //@PreAuthorize("isAuthenticated()") // dentro tenemos que dar la condición de preautorización. Ahi dentro Spring tiene un lenguaje propio llamado SPEL
+    @PreAuthorize("isAuthenticated()") // dentro tenemos que dar la condición de preautorización. Ahi dentro Spring tiene un lenguaje propio llamado SPEL
     //@Secured("ADMIN")
-    @RolesAllowed("ADMIN")
+    //@RolesAllowed("ADMIN")
     @PostMapping("/animalitos") // Se concatena la ruta con la de arriba
     // https://servidor/api/v1/animalitos <- POST
     // En la petición HTTP, en el cuerpo (BODY) Mandarán un JSON. Ese JSON conviértelo en automático a un NuevoAnimalitoRestDTOv1

@@ -1867,3 +1867,9 @@ Si el servidor no ha publicado en su lista CORS que https://miapp.miempresa.com 
 El servidor no valida una mierda !!!!!
 DICHO DE OTRA FORMA: Si en lugar de un navegador, hago la petición por CURL... el servidor me la va a servir igualmente.
 O desde un programa que hago JAVA... 
+
+
+---
+
+Token que nos devuelve:
+eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyIiwiZXhwIjoxNzI2ODY2NDEwLCJpYXQiOjE3MjY4MzA0MTB9.H1lMNGZsqcX6RrUW-hl2E7f_3ri3P2plozx-pd2FGcE
